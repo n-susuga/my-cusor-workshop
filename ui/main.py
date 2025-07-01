@@ -111,7 +111,14 @@ def main() -> None:
         search_submitted = st.form_submit_button("検索")
 
         if search_submitted:
-            asyncio.run(get_product_by_id(int(product_id)))  # 結果表示は次のタスクで実装
+            with st.spinner("検索中..."):
+                product = asyncio.run(get_product_by_id(int(product_id)))
+
+            if product:
+                st.success("商品が見つかりました。")
+                st.json(product.model_dump_json(indent=2))
+            else:
+                st.warning("指定されたIDの商品は見つかりませんでした。")
 
 
 if __name__ == "__main__":
