@@ -253,6 +253,7 @@ dev = [
     { name = "trio" },
 ]
 ui = [
+    { name = "httpx" },
     { name = "pydantic" },
     { name = "streamlit" },
 ]
@@ -270,6 +271,7 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.100.0" },
     { name = "gunicorn", marker = "extra == 'api'", specifier = ">=20.1.0" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.24.0" },
+    { name = "httpx", marker = "extra == 'ui'", specifier = ">=0.24.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.5.0" },
     { name = "pydantic", marker = "extra == 'api'", specifier = ">=2.0.0" },
     { name = "pydantic", marker = "extra == 'ui'", specifier = ">=2.0.0" },
