@@ -49,6 +49,19 @@ async def register_product(name: str, price: float) -> Product | None:
         return None
 
 
+async def get_product_by_id(product_id: int) -> Product | None:
+    """IDで商品を検索する。成功した場合はProductモデルを、失敗した場合はNoneを返す"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{API_URL}/items/{product_id}")
+            response.raise_for_status()
+            return Product(**response.json())
+    except httpx.HTTPStatusError:
+        return None
+    except httpx.ConnectError:
+        return None
+
+
 def main() -> None:
     """Streamlitアプリケーションのメイン関数"""
     st.set_page_config(
@@ -88,6 +101,17 @@ def main() -> None:
                     st.error(
                         "商品の登録に失敗しました。入力内容やAPIの接続状況を確認してください。"
                     )
+
+    st.divider()
+
+    # --- 商品検索フォーム ---
+    st.subheader("商品を検索する")
+    with st.form("search_form"):
+        product_id = st.number_input("商品ID", min_value=1, step=1, key="search_id")
+        search_submitted = st.form_submit_button("検索")
+
+        if search_submitted:
+            asyncio.run(get_product_by_id(int(product_id)))  # 結果表示は次のタスクで実装
 
 
 if __name__ == "__main__":
