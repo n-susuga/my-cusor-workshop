@@ -66,3 +66,11 @@ async def test_get_product_returns_200_and_product() -> None:
     assert data["id"] == created_product_id
     assert data["name"] == "取得用テスト商品"
     assert data["price"] == 500
+
+
+@pytest.mark.anyio
+async def test_get_non_existent_product_returns_404() -> None:
+    """存在しない商品IDでGETリクエストを送信すると、ステータスコード404が返ること"""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/items/999")
+    assert response.status_code == 404
