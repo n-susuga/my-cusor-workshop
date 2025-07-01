@@ -33,15 +33,20 @@ async def check_api_status() -> bool:
         return False
 
 
-async def register_product(name: str, price: float) -> Product:
-    """商品を登録する"""
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{API_URL}/items",
-            json={"name": name, "price": price},
-        )
-        response.raise_for_status()
-        return Product(**response.json())
+async def register_product(name: str, price: float) -> Product | None:
+    """商品を登録する。成功した場合はProductモデルを、失敗した場合はNoneを返す"""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{API_URL}/items",
+                json={"name": name, "price": price},
+            )
+            response.raise_for_status()
+            return Product(**response.json())
+    except httpx.HTTPStatusError:
+        return None
+    except httpx.ConnectError:
+        return None
 
 
 def main() -> None:
@@ -74,7 +79,15 @@ def main() -> None:
             if not name:
                 st.warning("商品名を入力してください。")
             else:
-                asyncio.run(register_product(name, float(price)))  # 結果表示は次のタスクで実装
+                with st.spinner("登録中..."):
+                    product = asyncio.run(register_product(name, float(price)))
+
+                if product:
+                    st.success(f"商品を登録しました。ID: {product.id}")
+                else:
+                    st.error(
+                        "商品の登録に失敗しました。入力内容やAPIの接続状況を確認してください。"
+                    )
 
 
 if __name__ == "__main__":
