@@ -1,7 +1,24 @@
 import asyncio
+from datetime import datetime
 
 import httpx
 import streamlit as st
+from pydantic import BaseModel, Field
+
+
+class ProductCreate(BaseModel):
+    """商品作成リクエストモデル"""
+
+    name: str = Field(..., min_length=1, description="商品名")
+    price: float = Field(..., gt=0, description="単価")
+
+
+class Product(ProductCreate):
+    """商品レスポンスモデル"""
+
+    id: int = Field(..., description="商品ID")
+    created_at: datetime = Field(default_factory=datetime.now, description="作成日時")
+
 
 API_URL = "http://localhost:8000"
 
@@ -14,6 +31,17 @@ async def check_api_status() -> bool:
             return response.status_code == 200
     except httpx.ConnectError:
         return False
+
+
+async def register_product(name: str, price: float) -> Product:
+    """商品を登録する"""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{API_URL}/items",
+            json={"name": name, "price": price},
+        )
+        response.raise_for_status()
+        return Product(**response.json())
 
 
 def main() -> None:
@@ -32,6 +60,21 @@ def main() -> None:
         st.success("API正常稼働中")
     else:
         st.error("API接続エラー")
+
+    st.divider()
+
+    # --- 商品登録フォーム ---
+    st.subheader("商品を登録する")
+    with st.form("register_form"):
+        name = st.text_input("商品名", key="register_name")
+        price = st.number_input("価格", min_value=0.0, step=0.01, key="register_price")
+        submitted = st.form_submit_button("登録")
+
+        if submitted:
+            if not name:
+                st.warning("商品名を入力してください。")
+            else:
+                asyncio.run(register_product(name, float(price)))  # 結果表示は次のタスクで実装
 
 
 if __name__ == "__main__":
