@@ -33,6 +33,24 @@ async def test_check_api_status_failure(httpx_mock: HTTPXMock) -> None:
 
 
 @pytest.mark.asyncio
+async def test_register_product_failure_validation_error(httpx_mock: HTTPXMock) -> None:
+    """商品登録がバリデーションエラーで失敗するケースをテストする"""
+    product_data = {"name": "", "price": 1000}  # 無効なデータ
+    error_response = {"detail": "Validation error"}
+
+    httpx_mock.add_response(
+        method="POST",
+        url=f"{API_URL}/items",
+        status_code=422,
+        json=error_response,
+    )
+
+    result = await register_product(product_data["name"], product_data["price"])
+
+    assert result is None
+
+
+@pytest.mark.asyncio
 async def test_register_product_success(httpx_mock: HTTPXMock) -> None:
     """商品登録が成功するケースをテストする"""
     product_data = {"name": "テスト商品", "price": 1000}
