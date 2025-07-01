@@ -123,5 +123,7 @@ typeCheckingMode = "basic"
 [dependency-groups]
 dev = [
     "fastapi>=0.115.13",
+    "pytest-httpx>=0.35.0",
+    "streamlit>=1.46.1",
 ]
 
