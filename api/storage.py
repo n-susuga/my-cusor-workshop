@@ -14,3 +14,7 @@ class InMemoryStorage:
         self._products[self._next_id] = product
         self._next_id += 1
         return product
+
+    def get_product(self, product_id: int) -> Product | None:
+        """IDで商品を検索する"""
+        return self._products.get(product_id)

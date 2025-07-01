@@ -46,3 +46,23 @@ async def test_health_check_returns_200() -> None:
         response = await client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+@pytest.mark.anyio
+async def test_get_product_returns_200_and_product() -> None:
+    """存在する商品IDでGETリクエストを送信すると、ステータスコード200と商品情報が返ること"""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        # まず商品を作成
+        payload = {"name": "取得用テスト商品", "price": 500}
+        create_response = await client.post("/items", json=payload)
+        assert create_response.status_code == 201
+        created_product_id = create_response.json()["id"]
+
+        # 作成した商品を取得
+        get_response = await client.get(f"/items/{created_product_id}")
+
+    assert get_response.status_code == 200
+    data = get_response.json()
+    assert data["id"] == created_product_id
+    assert data["name"] == "取得用テスト商品"
+    assert data["price"] == 500
