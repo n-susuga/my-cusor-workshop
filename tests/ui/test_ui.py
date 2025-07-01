@@ -3,7 +3,7 @@ import pytest
 from httpx import Response
 from pytest_httpx import HTTPXMock
 
-from ui.main import Product, check_api_status, register_product
+from ui.main import Product, check_api_status, get_product_by_id, register_product
 
 # APIのエンドポイントURL
 API_URL = "http://localhost:8000"
@@ -46,6 +46,48 @@ async def test_register_product_failure_validation_error(httpx_mock: HTTPXMock) 
     )
 
     result = await register_product(product_data["name"], product_data["price"])
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_product_by_id_success(httpx_mock: HTTPXMock) -> None:
+    """IDによる商品検索が成功するケースをテストする"""
+    product_id = 1
+    response_data = {
+        "id": product_id,
+        "name": "テスト商品",
+        "price": 1000,
+        "created_at": "2023-01-01T00:00:00Z",
+    }
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{API_URL}/items/{product_id}",
+        status_code=200,
+        json=response_data,
+    )
+
+    result = await get_product_by_id(product_id)
+
+    assert isinstance(result, Product)
+    assert result.id == product_id
+
+
+@pytest.mark.asyncio
+async def test_get_product_by_id_not_found(httpx_mock: HTTPXMock) -> None:
+    """存在しないIDで商品を検索した場合にNoneを返すことをテストする"""
+    product_id = 999  # 存在しないID
+    error_response = {"detail": "Product not found"}
+
+    httpx_mock.add_response(
+        method="GET",
+        url=f"{API_URL}/items/{product_id}",
+        status_code=404,
+        json=error_response,
+    )
+
+    result = await get_product_by_id(product_id)
 
     assert result is None
 
